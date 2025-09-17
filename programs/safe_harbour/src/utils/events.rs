@@ -20,7 +20,6 @@ pub struct SafeHarborAdopted {
     pub new_agreement: Pubkey,
 }
 
-
 #[event]
 pub struct AgreementUpdated {
     pub agreement: Pubkey,

@@ -9,7 +9,7 @@ pub const MAX_CONTACT_INFO_LEN: usize = 64;
 pub const MAX_PROTOCOL_NAME_LEN: usize = 64;
 pub const MAX_AGREEMENT_URI_LEN: usize = 128;
 
-pub const MAX_CHAINS: usize = 8;
+pub const MAX_AGREEMENT_CHAINS: usize = 8;
 pub const MAX_ACCOUNTS_PER_CHAIN: usize = 64;
 pub const MAX_ACCOUNT_ADDR_LEN: usize = 40;
 pub const MAX_CHAIN_ID_LEN: usize = 64;
@@ -55,7 +55,7 @@ impl AgreementData {
     + 32 // owner
     + 4 + MAX_PROTOCOL_NAME_LEN
     + 4 + (MAX_CONTACTS * (4 + MAX_CONTACT_NAME_LEN + 4 + MAX_CONTACT_INFO_LEN))
-    + 4 + (MAX_CHAINS * (
+    + 4 + (MAX_AGREEMENT_CHAINS * (
         4 + MAX_ASSET_RECOVERY_ADDR_LEN +
         4 + (MAX_ACCOUNTS_PER_CHAIN * (4 + MAX_ACCOUNT_ADDR_LEN + 1)) + // account + enum
         4 + MAX_CHAIN_ID_LEN

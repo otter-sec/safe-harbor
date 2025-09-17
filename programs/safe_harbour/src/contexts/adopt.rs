@@ -1,6 +1,6 @@
+use crate::constants::REGISTRY_SEED;
 use crate::states::{Adopt, Registry};
 use crate::utils::events::SafeHarborAdopted;
-use crate::constants::REGISTRY_SEED;
 use crate::AgreementData;
 use anchor_lang::prelude::*;
 
@@ -28,17 +28,17 @@ pub struct CreateOrUpdateAdoption<'info> {
 }
 impl CreateOrUpdateAdoption<'_> {
     pub fn create_or_update_adoption(&mut self) -> Result<()> {
-
         let old_agreement = self.adoption.agreement.key();
-        
+
         let adoption = &mut self.adoption;
         adoption.agreement = self.agreement.key();
 
         // Update the registry
-        self.registry.set_agreement(self.owner.key(), self.agreement.key())?;
+        self.registry
+            .set_agreement(self.owner.key(), self.agreement.key())?;
         emit!(SafeHarborAdopted {
             adopter: self.owner.key(),
-            old_agreement: old_agreement,
+            old_agreement,
             new_agreement: self.agreement.key(),
         });
 

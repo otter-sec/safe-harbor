@@ -2,7 +2,7 @@ use crate::errors::ValidationError;
 use anchor_lang::prelude::*;
 
 pub const MAX_AGREEMENTS: usize = 64;
-pub const MAX_CHAINS: usize = 32;
+pub const MAX_REGISTRY_CHAINS: usize = 32;
 pub const MAX_CHAIN_NAME_LEN: usize = 64;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
@@ -23,8 +23,14 @@ pub struct Registry {
 }
 
 impl Registry {
-    pub const INITIAL_SPACE: usize =
-        8 + 32 + 1 + 4 + (MAX_AGREEMENTS * 64) + 4 + (MAX_CHAINS * (4 + MAX_CHAIN_NAME_LEN)) + 1024;
+    pub const INITIAL_SPACE: usize = 8
+        + 32
+        + 1
+        + 4
+        + (MAX_AGREEMENTS * 64)
+        + 4
+        + (MAX_REGISTRY_CHAINS * (4 + MAX_CHAIN_NAME_LEN))
+        + 1024;
 
     pub fn get_agreement(&self, adopter: Pubkey) -> Option<Pubkey> {
         self.agreements
@@ -35,7 +41,7 @@ impl Registry {
 
     pub fn set_agreement(&mut self, adopter: Pubkey, agreement: Pubkey) -> Result<()> {
         require!(
-            self.agreements.len() + 1 <= MAX_AGREEMENTS,
+            self.agreements.len() < MAX_AGREEMENTS,
             crate::errors::ValidationError::MaxLengthExceeded
         );
         if let Some(i) = self.agreements.iter().position(|e| e.key == adopter) {
@@ -84,7 +90,7 @@ impl Registry {
 
     pub fn add_valid_chains(&mut self, chain_ids: Vec<String>) -> Result<()> {
         require!(
-            self.valid_chains.len() + chain_ids.len() <= MAX_CHAINS,
+            self.valid_chains.len() + chain_ids.len() <= MAX_REGISTRY_CHAINS,
             crate::errors::ValidationError::MaxLengthExceeded
         );
         for chain_id in chain_ids {

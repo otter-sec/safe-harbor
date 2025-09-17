@@ -33,7 +33,7 @@ impl<'info> Initialize<'info> {
 
         registry.initialized = true;
         registry.owner = self.signer.key();
-        
+
         registry.add_valid_chains(valid_chains)?;
 
         emit!(RegistryInitialized {

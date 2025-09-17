@@ -68,7 +68,7 @@ impl CreateOrUpdateAgreement<'_> {
 
         emit!(AgreementUpdated {
             agreement: agreement.key(),
-            update_type: update_type,
+            update_type,
         });
 
         Ok(())

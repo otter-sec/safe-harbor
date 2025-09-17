@@ -10,8 +10,8 @@ pub mod errors;
 pub mod states;
 pub mod utils;
 
-use contexts::*;
 pub use states::{AgreementData, AgreementUpdateType};
+pub use contexts::*;
 
 #[program]
 pub mod safe_harbour {
@@ -31,6 +31,7 @@ pub mod safe_harbour {
     ///
     /// # Returns
     /// * `Result<()>` - Success or error
+    #[allow(unused_variables)]
     pub fn create_or_update_agreement(
         ctx: Context<CreateOrUpdateAgreement>,
         data: AgreementData,
