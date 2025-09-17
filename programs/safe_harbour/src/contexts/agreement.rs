@@ -1,59 +1,76 @@
-use crate::states::{Agreement, Registry};
-use crate::utils::events::AgreementCreated;
-use crate::utils::types::AgreementData;
-use crate::utils::utils::*;
-use crate::errors::*;
+use crate::constants::{AGREEMENT_SEED, REGISTRY_SEED};
+use crate::states::{AgreementData, AgreementUpdateType, Registry};
+use crate::utils::events::AgreementUpdated;
 use anchor_lang::prelude::*;
 
 /// Context for creating or updating a Safe Harbor agreement
 #[derive(Accounts)]
+#[instruction(init_nonce: u64)]
 pub struct CreateOrUpdateAgreement<'info> {
-    #[account(mut, seeds=[b"registry_v2"], bump)]
-    pub registry: Account<'info, Registry>,
-
     #[account(
         init_if_needed,
-        payer = payer,
-        space = Agreement::INITIAL_SPACE,
+        seeds=[AGREEMENT_SEED, signer.key().as_ref(), init_nonce.to_be_bytes().as_ref()],
+        payer = signer,
+        space = AgreementData::INITIAL_SPACE,
+        bump,
     )]
-    pub agreement: Account<'info, Agreement>,
+    pub agreement: Account<'info, AgreementData>,
 
-    /// The owner of the agreement (unchecked account)
-    /// CHECK: Owner can be any valid pubkey, doesn't need to sign for creation
-    pub owner: UncheckedAccount<'info>,
-
+    #[account(
+        mut,
+        seeds=[REGISTRY_SEED],
+        bump
+    )]
+    pub registry: Account<'info, Registry>,
     #[account(mut)]
-    pub payer: Signer<'info>,
+    pub signer: Signer<'info>,
+
     pub system_program: Program<'info, System>,
 }
 
-pub fn create_or_update_agreement(
-    ctx: Context<CreateOrUpdateAgreement>,
-    data: AgreementData,
-    owner: Pubkey,
-) -> Result<()> {
-    require!(
-        is_valid_pubkey(&owner),
-        ValidationError::InvalidNewOwner
-    );
+impl CreateOrUpdateAgreement<'_> {
+    pub fn create_or_update_agreement(
+        &mut self,
+        data: AgreementData,
+        owner: Pubkey,
+        update_type: AgreementUpdateType,
+    ) -> Result<()> {
+        let agreement = &mut self.agreement;
+        data.validate_agreement_data(&self.registry)?;
 
-    // Create a temporary agreement instance for validation
-    let temp_agreement = Agreement {
-        owner,
-        data: data.clone(),
-    };
+        match update_type {
+            AgreementUpdateType::ProtocolName => {
+                agreement.protocol_name = data.protocol_name;
+            }
+            AgreementUpdateType::ContactDetails => {
+                agreement.contact_details = data.contact_details;
+            }
+            AgreementUpdateType::Chains => {
+                agreement.chains = data.chains;
+            }
+            AgreementUpdateType::BountyTerms => {
+                agreement.bounty_terms = data.bounty_terms;
+            }
 
-    temp_agreement.validate_agreement_data(&ctx.accounts.registry)?;
+            AgreementUpdateType::AgreementUri => {
+                agreement.agreement_uri = data.agreement_uri;
+            }
 
-    let agreement = &mut ctx.accounts.agreement;
-    agreement.owner = owner;
-    agreement.data = data.clone();
+            AgreementUpdateType::InitializeOrUpdate => {
+                agreement.owner = owner;
+                agreement.agreement_uri = data.agreement_uri;
+                agreement.protocol_name = data.protocol_name;
+                agreement.contact_details = data.contact_details;
+                agreement.chains = data.chains;
+                agreement.bounty_terms = data.bounty_terms;
+            }
+        }
 
-    emit!(AgreementCreated::new(
-        ctx.accounts.agreement.key(),
-        owner,
-        data.protocol_name
-    ));
+        emit!(AgreementUpdated {
+            agreement: agreement.key(),
+            update_type: update_type,
+        });
 
-    Ok(())
+        Ok(())
+    }
 }

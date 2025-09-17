@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::errors::{BountyError, ChainError, ValidationError};
 use crate::utils::types::{AccountInScope, BountyTerms, Chain};
-use crate::Contact;
+use crate::utils::types::Contact;
 
 pub fn validate_bounty_terms(bounty_terms: &BountyTerms) -> Result<()> {
     if bounty_terms.bounty_percentage > 100 {
@@ -211,10 +211,6 @@ pub fn validate_accounts(accounts: &[AccountInScope], caip2_chain_id: &str) -> R
 
 pub fn calculate_required_space(data_size: usize) -> usize {
     8 + data_size + (data_size / 4)
-}
-
-pub fn is_valid_pubkey(pubkey: &Pubkey) -> bool {
-    *pubkey != Pubkey::default()
 }
 
 pub fn find_adoption_pda(

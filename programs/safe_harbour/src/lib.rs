@@ -11,21 +11,21 @@ pub mod states;
 pub mod utils;
 
 use contexts::*;
-pub use states::{Adopt, Agreement, Registry};
-pub use utils::types::{
-    AccountInScope, AgreementData, BountyTerms, Chain, ChildContractScope, Contact,
-    IdentityRequirements,
-};
+pub use states::{AgreementData, AgreementUpdateType};
 
 #[program]
 pub mod safe_harbour {
     use super::*;
 
+    /// Initializes the global registry PDA.
+    pub fn initialize(ctx: Context<Initialize>, valid_chains: Vec<String>) -> Result<()> {
+        ctx.accounts.initialize(valid_chains)
+    }
+
     /// Creates a new agreement account or updates an existing one with the specified parameters.
     /// The agreement can be modified by its owner after creation.
     ///
     /// # Arguments
-    /// * `ctx` - The creation/update context
     /// * `data` - The agreement data
     /// * `owner` - The public key of the agreement owner
     ///
@@ -35,19 +35,19 @@ pub mod safe_harbour {
         ctx: Context<CreateOrUpdateAgreement>,
         data: AgreementData,
         owner: Pubkey,
+        update_type: AgreementUpdateType,
+        init_nonce: u64,
     ) -> Result<()> {
-        contexts::agreement::create_or_update_agreement(ctx, data, owner)
+        ctx.accounts
+            .create_or_update_agreement(data, owner, update_type)
     }
 
     /// Creates or updates an adoption entry where the signer adopts the specified agreement.
     /// This registers the adoption in the registry for efficient lookup.
     ///
-    /// # Arguments
-    /// * `ctx` - The adoption context
-    ///
     /// # Returns
     /// * `Result<()>` - Success or error
     pub fn create_or_update_adoption(ctx: Context<CreateOrUpdateAdoption>) -> Result<()> {
-        contexts::adoption::create_or_update_adoption(ctx)
+        ctx.accounts.create_or_update_adoption()
     }
 }

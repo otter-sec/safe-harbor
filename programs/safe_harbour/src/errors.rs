@@ -12,6 +12,9 @@ pub enum ChainError {
     #[msg("Invalid CAIP-2 chain ID")]
     InvalidChainId,
 
+    #[msg("Max length exceeded")]
+    MaxLengthExceeded,
+
     #[msg("Duplicate CAIP-2 chain ID")]
     DuplicateChainId,
 
@@ -45,6 +48,9 @@ pub enum AdoptionError {
 }
 #[error_code]
 pub enum ValidationError {
+    #[msg("Registry already initialized")]
+    AlreadyInitialized,
+
     #[msg("Invalid protocol name")]
     InvalidProtocolName,
 
@@ -57,11 +63,17 @@ pub enum ValidationError {
     #[msg("Invalid new owner")]
     InvalidNewOwner,
 
+    #[msg("Invalid owner key")]
+    InvalidOwnerKey,
+
     #[msg("Invalid chain parameters")]
     InvalidChainParams,
 
     #[msg("Invalid account parameters")]
     InvalidAccountParams,
+
+    #[msg("Max length exceeded")]
+    MaxLengthExceeded,
 }
 #[error_code]
 pub enum ProgramError {
