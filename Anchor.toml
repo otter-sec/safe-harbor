@@ -7,7 +7,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-safe_harbour = "CxQZFj98gyJSJhBh4kZ6jCpQcaW1gcx9gcwcCr2KrkNH"
+safe_harbour = "8wRWiR6DFVP3JmW8i4bTa393PorrTXsQhrZgdfQjLpmX"
 
 [registry]
 url = "https://api.apr.dev"
@@ -17,4 +17,4 @@ cluster = "Localnet"
 wallet = "/Users/0x4ka5h/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "npx --yes ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"

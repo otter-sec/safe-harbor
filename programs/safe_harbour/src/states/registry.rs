@@ -1,8 +1,8 @@
 use crate::errors::ValidationError;
 use anchor_lang::prelude::*;
 
-pub const MAX_AGREEMENTS: usize = 128;
-pub const MAX_CHAINS: usize = 64;
+pub const MAX_AGREEMENTS: usize = 64;
+pub const MAX_CHAINS: usize = 32;
 pub const MAX_CHAIN_NAME_LEN: usize = 64;
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
