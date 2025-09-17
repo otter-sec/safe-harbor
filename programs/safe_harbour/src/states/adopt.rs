@@ -9,7 +9,6 @@ pub struct Adopt {
 impl Adopt {
     pub const SPACE: usize = 8 + 32;
 
-    /// Validates that the adoption is properly initialized
     pub fn validate_initialized(&self) -> Result<()> {
         require!(
             self.agreement != Pubkey::default(),
@@ -18,7 +17,6 @@ impl Adopt {
         Ok(())
     }
 
-    /// Validates that the agreement is valid
     pub fn validate_agreement(&self) -> Result<()> {
         require!(
             self.agreement != Pubkey::default(),
@@ -27,7 +25,6 @@ impl Adopt {
         Ok(())
     }
 
-    /// Validates that the adoption can be updated
     pub fn validate_can_update(&self, new_agreement: &Pubkey) -> Result<()> {
         require!(
             new_agreement != &Pubkey::default(),
