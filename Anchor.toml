@@ -6,15 +6,15 @@ seeds = false
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-safe_harbour = "8wRWiR6DFVP3JmW8i4bTa393PorrTXsQhrZgdfQjLpmX"
+[programs.devnet]
+safe_harbour = "EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF"
 
-[registry]
-url = "https://api.apr.dev"
+[programs.localnet]
+safe_harbour = "EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF"
 
 [provider]
 cluster = "Localnet"
 wallet = "/Users/0x4ka5h/.config/solana/id.json"
 
 [scripts]
-test = "npx --yes ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test = "yarn test"

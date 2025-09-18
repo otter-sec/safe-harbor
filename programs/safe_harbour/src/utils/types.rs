@@ -11,13 +11,6 @@ pub struct AccountInScope {
     pub child_contract_scope: ChildContractScope,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
-pub struct Chain {
-    pub asset_recovery_address: String,
-    pub accounts: Vec<AccountInScope>,
-    pub caip2_chain_id: String,
-}
-
 #[derive(AnchorSerialize, AnchorDeserialize, Clone)]
 pub enum ChildContractScope {
     None,

@@ -1,27 +1,5 @@
 use anchor_lang::prelude::*;
 #[error_code]
-pub enum RegistryError {
-    #[msg("Registry has not been initialized")]
-    RegistryNotInitialized,
-
-    #[msg("Caller is not the registry owner")]
-    NotRegistryOwner,
-}
-#[error_code]
-pub enum ChainError {
-    #[msg("Invalid CAIP-2 chain ID")]
-    InvalidChainId,
-
-    #[msg("Max length exceeded")]
-    MaxLengthExceeded,
-
-    #[msg("Duplicate CAIP-2 chain ID")]
-    DuplicateChainId,
-
-    #[msg("Chain not valid in registry")]
-    ChainNotValidInRegistry,
-}
-#[error_code]
 pub enum BountyError {
     #[msg("Invalid bounty percentage. Must be between 0 and 100")]
     InvalidBountyPercentage,
@@ -48,6 +26,9 @@ pub enum AdoptionError {
 }
 #[error_code]
 pub enum ValidationError {
+    #[msg("Invalid update type")]
+    InvalidUpdateType,
+
     #[msg("Registry already initialized")]
     AlreadyInitialized,
 
@@ -65,9 +46,6 @@ pub enum ValidationError {
 
     #[msg("Invalid owner key")]
     InvalidOwnerKey,
-
-    #[msg("Invalid chain parameters")]
-    InvalidChainParams,
 
     #[msg("Invalid account parameters")]
     InvalidAccountParams,

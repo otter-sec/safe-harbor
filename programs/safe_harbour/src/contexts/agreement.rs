@@ -1,5 +1,4 @@
-use crate::constants::{AGREEMENT_SEED, REGISTRY_SEED};
-use crate::states::{AgreementData, AgreementUpdateType, Registry};
+use crate::states::{AgreementData, AgreementUpdateType};
 use crate::utils::events::AgreementUpdated;
 use anchor_lang::prelude::*;
 
@@ -9,19 +8,13 @@ use anchor_lang::prelude::*;
 pub struct CreateOrUpdateAgreement<'info> {
     #[account(
         init_if_needed,
-        seeds=[AGREEMENT_SEED, signer.key().as_ref(), init_nonce.to_be_bytes().as_ref()],
+        seeds=[AgreementData::AGREEMENT_SEED, signer.key().as_ref(), init_nonce.to_le_bytes().as_ref()],
         payer = signer,
         space = AgreementData::INITIAL_SPACE,
         bump,
     )]
     pub agreement: Account<'info, AgreementData>,
 
-    #[account(
-        mut,
-        seeds=[REGISTRY_SEED],
-        bump
-    )]
-    pub registry: Account<'info, Registry>,
     #[account(mut)]
     pub signer: Signer<'info>,
 
@@ -36,7 +29,7 @@ impl CreateOrUpdateAgreement<'_> {
         update_type: AgreementUpdateType,
     ) -> Result<()> {
         let agreement = &mut self.agreement;
-        data.validate_agreement_data(&self.registry)?;
+        data.validate_agreement_data()?;
 
         match update_type {
             AgreementUpdateType::ProtocolName => {
@@ -44,9 +37,6 @@ impl CreateOrUpdateAgreement<'_> {
             }
             AgreementUpdateType::ContactDetails => {
                 agreement.contact_details = data.contact_details;
-            }
-            AgreementUpdateType::Chains => {
-                agreement.chains = data.chains;
             }
             AgreementUpdateType::BountyTerms => {
                 agreement.bounty_terms = data.bounty_terms;
@@ -61,7 +51,6 @@ impl CreateOrUpdateAgreement<'_> {
                 agreement.agreement_uri = data.agreement_uri;
                 agreement.protocol_name = data.protocol_name;
                 agreement.contact_details = data.contact_details;
-                agreement.chains = data.chains;
                 agreement.bounty_terms = data.bounty_terms;
             }
         }

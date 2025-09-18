@@ -2,25 +2,20 @@
 
 use anchor_lang::prelude::*;
 
-declare_id!("8wRWiR6DFVP3JmW8i4bTa393PorrTXsQhrZgdfQjLpmX");
+declare_id!("EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF");
 
-pub mod constants;
 pub mod contexts;
 pub mod errors;
 pub mod states;
 pub mod utils;
 
-pub use states::{AgreementData, AgreementUpdateType};
 pub use contexts::*;
+pub use errors::*;
+pub use states::{AgreementData, AgreementUpdateType};
 
 #[program]
 pub mod safe_harbour {
     use super::*;
-
-    /// Initializes the global registry PDA.
-    pub fn initialize(ctx: Context<Initialize>, valid_chains: Vec<String>) -> Result<()> {
-        ctx.accounts.initialize(valid_chains)
-    }
 
     /// Creates a new agreement account or updates an existing one with the specified parameters.
     /// The agreement can be modified by its owner after creation.
@@ -34,11 +29,19 @@ pub mod safe_harbour {
     #[allow(unused_variables)]
     pub fn create_or_update_agreement(
         ctx: Context<CreateOrUpdateAgreement>,
+        init_nonce: u64,
         data: AgreementData,
         owner: Pubkey,
-        update_type: AgreementUpdateType,
-        init_nonce: u64,
+        update_type: u8,
     ) -> Result<()> {
+        let update_type = match update_type {
+            0 => AgreementUpdateType::InitializeOrUpdate,
+            1 => AgreementUpdateType::ProtocolName,
+            2 => AgreementUpdateType::ContactDetails,
+            3 => AgreementUpdateType::BountyTerms,
+            4 => AgreementUpdateType::AgreementUri,
+            _ => return Err(ValidationError::InvalidUpdateType.into()),
+        };
         ctx.accounts
             .create_or_update_agreement(data, owner, update_type)
     }
