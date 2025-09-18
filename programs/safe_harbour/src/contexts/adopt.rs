@@ -1,4 +1,4 @@
-use crate::states::{Adopt,AgreementData};
+use crate::states::{Adopt, AgreementData};
 use crate::utils::events::SafeHarborAdopted;
 use anchor_lang::prelude::*;
 
