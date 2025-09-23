@@ -1,19 +1,19 @@
 {
-    "name": "safe-harbour-osec-tests",
-    "private": true,
-    "version": "0.1.0",
-    "license": "UNLICENSED",
-    "scripts": {
-        "test": "anchor test"
-    },
-    "devDependencies": {
-        "@coral-xyz/anchor": "^0.31.1",
-        "@types/chai": "^4.3.11",
-        "@types/mocha": "^10.0.6",
-        "@types/node": "^20.12.12",
-        "chai": "^4.4.1",
-        "mocha": "^10.4.0",
-        "ts-node": "^10.9.2",
-        "typescript": "^5.4.5"
-    }
+  "scripts": {
+        "test": "ts-mocha -p ./tsconfig.json -t 1000000 tests/test.ts"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.31.0"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^18.0.0",
+    "chai": "^4.3.4",
+    "mocha": "^10.0.0",
+    "ts-mocha": "^10.0.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
+  }
 }

@@ -1,14 +1,13 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "types": ["mocha", "node"],
+    "lib": ["es2020"],
     "module": "commonjs",
-    "strict": true,
+    "target": "es6",
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "types": ["node", "mocha", "chai"],
+    "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "outDir": "dist"
-  },
-  "include": ["tests/**/*.ts"]
+    "skipLibCheck": true,
+    "strict": false
+  }
 }
-
