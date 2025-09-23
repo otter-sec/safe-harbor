@@ -61,7 +61,10 @@ mod tests {
 
     #[test]
     fn test_bounty_terms_validation() {
-        let bounty = BountyTerms { bounty_percentage: 101, ..Default::default() };
+        let bounty = BountyTerms {
+            bounty_percentage: 101,
+            ..Default::default()
+        };
         assert_eq!(bounty.bounty_percentage, 101);
     }
 

@@ -15,7 +15,6 @@ pub const MAX_ASSET_RECOVERY_ADDR_LEN: usize = 64;
 #[derive(Default)]
 pub struct AgreementData {
     pub owner: Pubkey,
-
     pub protocol_name: String,
     pub contact_details: Vec<Contact>,
     pub bounty_terms: BountyTerms,

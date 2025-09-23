@@ -1,26 +1,17 @@
 import * as anchor from "@coral-xyz/anchor";
-import {
-  clusterApiUrl,
-  Connection,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  sendAndConfirmTransaction,
-  SystemProgram,
-  Keypair,
-} from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
 import * as fs from "fs";
-const safeHarbourIDL = JSON.parse(fs.readFileSync("./target/idl/safe_harbour.json", "utf8"));
+const safeHarbourIDL = JSON.parse(
+  fs.readFileSync("./target/idl/safe_harbour.json", "utf8")
+);
 import { Buffer } from "buffer";
 import { BN } from "bn.js";
-
-const PROGRAM_ID = new PublicKey("EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF");
 
 // Seeds
 const AGREEMENT_SEED = Buffer.from("agreement_v2");
 const ADOPTION_SEED = Buffer.from("adopt_v2");
 
 async function main() {
-
   const provider = new anchor.AnchorProvider(
     new anchor.web3.Connection("http://127.0.0.1:8899"),
     anchor.Wallet.local(),
@@ -35,16 +26,17 @@ async function main() {
   const balance = await provider.connection.getBalance(wallet);
   console.log("Owner wallet balance:", balance / LAMPORTS_PER_SOL, "SOL");
 
-  const program = new anchor.Program(
-    safeHarbourIDL as anchor.Idl,
-    provider
-  );
+  const program = new anchor.Program(safeHarbourIDL as anchor.Idl, provider);
 
   const initNonce = new BN(1);
 
   // Derive PDAs
   const [agreement] = PublicKey.findProgramAddressSync(
-    [AGREEMENT_SEED, owner.publicKey.toBuffer(), Buffer.from(initNonce.toArrayLike(Buffer, "le", 8))],
+    [
+      AGREEMENT_SEED,
+      owner.publicKey.toBuffer(),
+      Buffer.from(initNonce.toArrayLike(Buffer, "le", 8)),
+    ],
     program.programId
   );
 
@@ -62,9 +54,7 @@ async function main() {
 
     const agreementData = {
       protocolName: "Test Protocol Devnet",
-      contactDetails: [
-        { name: "John Doe", contact: "john@example.com" },
-      ],
+      contactDetails: [{ name: "John Doe", contact: "john@example.com" }],
       bountyTerms: {
         bountyPercentage: new BN(10),
         bountyCapUsd: new BN(100000),
@@ -76,13 +66,12 @@ async function main() {
       agreementUri: "ipfs://test-hash-devnet",
     };
 
-
     const createAgreementInst = await program.methods
       .createOrUpdateAgreement(
         initNonce,
         agreementData,
         owner.publicKey,
-        0, // update_type: 0 = InitializeOrUpdate
+        0 // update_type: 0 = InitializeOrUpdate
       )
       .accounts({
         agreement: agreement,
@@ -91,9 +80,10 @@ async function main() {
       })
       .rpc();
 
-  
-    console.log("Agreement created successfully! Signature: ", createAgreementInst);
-
+    console.log(
+      "Agreement created successfully! Signature: ",
+      createAgreementInst
+    );
 
     // Test 2: Create Adoption
     console.log("Test 2: Creating Adoption...");
@@ -108,21 +98,25 @@ async function main() {
       })
       .rpc();
 
-
-    console.log("Adoption created successfully! Signature: ", createAdoptionInst);
+    console.log(
+      "Adoption created successfully! Signature: ",
+      createAdoptionInst
+    );
 
     console.log("Test 3: new Agreement");
     const newInitNonce = new BN(2);
     const newAgreement = PublicKey.findProgramAddressSync(
-      [AGREEMENT_SEED, owner.publicKey.toBuffer(), Buffer.from(newInitNonce.toArrayLike(Buffer, "le", 8))],
+      [
+        AGREEMENT_SEED,
+        owner.publicKey.toBuffer(),
+        Buffer.from(newInitNonce.toArrayLike(Buffer, "le", 8)),
+      ],
       program.programId
     );
 
     const newAgreementData = {
       protocolName: "Test Protocol Devnet 2",
-      contactDetails: [
-        { name: "Jane Doe", contact: "jane@example.com" },
-      ],
+      contactDetails: [{ name: "Jane Doe", contact: "jane@example.com" }],
       bountyTerms: {
         bountyPercentage: new BN(15),
         bountyCapUsd: new BN(150000),
@@ -139,7 +133,7 @@ async function main() {
         newInitNonce,
         newAgreementData,
         owner.publicKey,
-        0,
+        0
       )
       .accounts({
         agreement: newAgreement,
@@ -148,7 +142,10 @@ async function main() {
       })
       .rpc();
 
-    console.log("new Agreement created successfully! Signature: ", newCreateAgreementInst);
+    console.log(
+      "new Agreement created successfully! Signature: ",
+      newCreateAgreementInst
+    );
 
     // Test 4: update Adoption
     console.log("Test 4: Updating Adoption...");
@@ -163,9 +160,10 @@ async function main() {
       })
       .rpc();
 
-    console.log("Adoption updated successfully! Signature: ", updateAdoptionInst);
-
-
+    console.log(
+      "Adoption updated successfully! Signature: ",
+      updateAdoptionInst
+    );
   } catch (error) {
     console.error("Test failed:", error);
     return false;
@@ -173,4 +171,3 @@ async function main() {
 }
 
 main().then(() => process.exit());
-
