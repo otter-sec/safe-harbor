@@ -3,12 +3,36 @@ use crate::utils::events::AgreementUpdated;
 use anchor_lang::prelude::*;
 
 /// Context for creating or updating a Safe Harbor agreement
+///
+/// ## PDA Derivation
+/// The `agreement` account is a Program Derived Address (PDA) that uniquely represents
+/// an agreement adopted by a owner.  
+///
+/// PDA seeds used:
+/// - `AgreementData::AGREEMENT_SEED`
+/// - `signer.key().as_ref()` (the user who is creating the agreement)
+/// - `init_nonce.to_le_bytes()` (a unique nonce to allow multiple agreements per signer)
+///
+/// ## Why `init_nonce`?
+/// - Without `init_nonce`, a user can only create **one** agreement, because the PDA
+///   would always be derived from `[AGREEMENT_SEED, signer.key()]`.
+/// - In the EVM version, users are allowed to create multiple agreements. To maintain
+///   consistency with that model, we include `init_nonce` as an extra seed.
+/// - This makes it possible for the same `signer` to create multiple unique agreements,
+///   while still ensuring deterministic PDA derivation.
+///
+/// ## Mapping rules
+/// - Multiple agreements can belong to the same user (`1:N` relationship).
 #[derive(Accounts)]
 #[instruction(init_nonce: u64)]
 pub struct CreateOrUpdateAgreement<'info> {
     #[account(
         init_if_needed,
-        seeds=[AgreementData::AGREEMENT_SEED, signer.key().as_ref(), init_nonce.to_le_bytes().as_ref()],
+        seeds = [
+            AgreementData::AGREEMENT_SEED,
+            signer.key().as_ref(),
+            init_nonce.to_le_bytes().as_ref(),
+        ],
         payer = signer,
         space = AgreementData::INITIAL_SPACE,
         bump,
