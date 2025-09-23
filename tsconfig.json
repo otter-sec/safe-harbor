@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
-    "resolveJsonModule": true,
+    "types": ["mocha", "node"],
+    "lib": ["es2020"],
+    "module": "commonjs",
+    "target": "es6",
     "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node"
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": false
   }
 }

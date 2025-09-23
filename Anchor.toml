@@ -13,8 +13,8 @@ safe_harbour = "EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF"
 safe_harbour = "EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF"
 
 [provider]
-cluster = "Localnet"
-wallet = "/Users/0x4ka5h/.config/solana/id.json"
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn test"

@@ -1,173 +1,193 @@
 import * as anchor from "@coral-xyz/anchor";
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram } from "@solana/web3.js";
-import * as fs from "fs";
-const safeHarbourIDL = JSON.parse(
-  fs.readFileSync("./target/idl/safe_harbour.json", "utf8")
-);
+import { Program } from "@coral-xyz/anchor";
+import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { BN } from "bn.js";
+import { assert } from "chai";
+import { SafeHarbour } from "../target/types/safe_harbour";
 
 // Seeds
 const AGREEMENT_SEED = Buffer.from("agreement_v2");
 const ADOPTION_SEED = Buffer.from("adopt_v2");
 
-async function main() {
-  const provider = new anchor.AnchorProvider(
-    new anchor.web3.Connection("http://127.0.0.1:8899"),
-    anchor.Wallet.local(),
-    { preflightCommitment: "confirmed" }
-  );
-  anchor.setProvider(provider);
+describe("safe_harbour v2", () => {
+  // Configure the client to use the local cluster.
+  anchor.setProvider(anchor.AnchorProvider.env());
 
-  const owner = provider.wallet.payer;
-  console.log(`Owner wallet public key: ${owner.publicKey.toBase58()}`);
+  const program = anchor.workspace.SafeHarbour as Program<SafeHarbour>;
+  const provider = anchor.getProvider();
+  const owner = (provider.wallet as anchor.Wallet).payer;
 
-  const wallet = provider.wallet.publicKey;
-  const balance = await provider.connection.getBalance(wallet);
-  console.log("Owner wallet balance:", balance / LAMPORTS_PER_SOL, "SOL");
+  let agreement_pda: PublicKey;
+  let adoption_pda: PublicKey;
 
-  const program = new anchor.Program(safeHarbourIDL as anchor.Idl, provider);
+  before(async () => {
+    const initNonce = new BN(1);
 
-  const initNonce = new BN(1);
+    // Derive PDAs - Program Derived Addresses for deterministic account creation
+    [agreement_pda] = PublicKey.findProgramAddressSync(
+      [
+        AGREEMENT_SEED,
+        owner.publicKey.toBuffer(),
+        Buffer.from(initNonce.toArrayLike(Buffer, "le", 8)),
+      ],
+      program.programId
+    );
 
-  // Derive PDAs
-  const [agreement] = PublicKey.findProgramAddressSync(
-    [
-      AGREEMENT_SEED,
-      owner.publicKey.toBuffer(),
-      Buffer.from(initNonce.toArrayLike(Buffer, "le", 8)),
-    ],
-    program.programId
-  );
+    [adoption_pda] = PublicKey.findProgramAddressSync(
+      [ADOPTION_SEED, owner.publicKey.toBuffer()],
+      program.programId
+    );
 
-  const [adoption] = PublicKey.findProgramAddressSync(
-    [ADOPTION_SEED, owner.publicKey.toBuffer()],
-    program.programId
-  );
+    console.log(`Agreement PDA: ${agreement_pda.toBase58()}`);
+    console.log(`Adoption PDA: ${adoption_pda.toBase58()}`);
+  });
 
-  console.log(`Agreement PDA: ${agreement.toBase58()}`);
-  console.log(`Adoption PDA: ${adoption.toBase58()}\n`);
-
-  try {
-    // Test 1: Create Agreement
-    console.log("Test 1: Creating Agreement...");
-
+  it("Create Agreement", async () => {
+    const initNonce = new BN(1);
     const agreementData = {
-      protocolName: "Test Protocol Devnet",
-      contactDetails: [{ name: "John Doe", contact: "john@example.com" }],
+      owner: owner.publicKey,
+      protocolName: "Safe Harbour Protocol",
+      contactDetails: [
+        { name: "Security Team", contact: "security@example.com" },
+      ],
       bountyTerms: {
         bountyPercentage: new BN(10),
         bountyCapUsd: new BN(100000),
         retainable: false,
         identity: { anonymous: {} },
-        diligenceRequirements: "Basic requirements",
+        diligenceRequirements: "Responsible disclosure required",
         aggregateBountyCapUsd: new BN(0),
       },
-      agreementUri: "ipfs://test-hash-devnet",
+      agreementUri: "ipfs://QmAgreementHash1",
     };
 
-    const createAgreementInst = await program.methods
+    const tx = await program.methods
+      .createOrUpdateAgreement(initNonce, agreementData, owner.publicKey, 0)
+      .accounts({
+        agreement: agreement_pda,
+        signer: owner.publicKey,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    // wait for confirmation
+    const latestBlockHash = await provider.connection.getLatestBlockhash();
+    await provider.connection.confirmTransaction({
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    // Fetch and verify the created agreement
+    const agreementAccount = await program.account.agreementData.fetch(
+      agreement_pda
+    );
+
+    // Assert agreement data
+    assert.equal(agreementAccount.protocolName, "Safe Harbour Protocol");
+    assert.equal(
+      agreementAccount.bountyTerms.bountyPercentage.toString(),
+      "10"
+    );
+    assert.equal(
+      agreementAccount.bountyTerms.bountyCapUsd.toString(),
+      "100000"
+    );
+    assert.equal(agreementAccount.owner.toString(), owner.publicKey.toString());
+  });
+
+  it("Adopt Agreement", async () => {
+    const tx = await program.methods
+      .createOrUpdateAdoption()
+      .accounts({
+        adoption: adoption_pda,
+        owner: owner.publicKey,
+        agreement: agreement_pda,
+        systemProgram: SystemProgram.programId,
+      } as any)
+      .rpc();
+
+    // wait for confirmation
+    const latestBlockHash = await provider.connection.getLatestBlockhash();
+    await provider.connection.confirmTransaction({
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    // Fetch and verify the created adoption
+    const adoptionAccount = await program.account.adopt.fetch(adoption_pda);
+
+    // Assert adoption data
+    assert.equal(
+      adoptionAccount.agreement.toString(),
+      agreement_pda.toString()
+    );
+  });
+
+  it("Update Agreement", async () => {
+    const initNonce = new BN(1);
+    const updatedAgreementData = {
+      owner: owner.publicKey,
+      protocolName: "Safe Harbour Protocol v2",
+      contactDetails: [
+        // Updated contact details
+        { name: "Security Team", contact: "security@example.com" },
+        { name: "Bug Bounty Lead", contact: "bounty@example.com" },
+      ],
+      bountyTerms: {
+        bountyPercentage: new BN(15), // Updated bounty percentage
+        bountyCapUsd: new BN(250000), // Updated bounty cap
+        retainable: true, // Updated retainable flag
+        identity: { anonymous: {} },
+        diligenceRequirements: "Responsible disclosure required",
+        aggregateBountyCapUsd: new BN(0),
+      },
+      agreementUri: "ipfs://QmAgreementHash1",
+    };
+
+    const tx = await program.methods
       .createOrUpdateAgreement(
         initNonce,
-        agreementData,
+        updatedAgreementData,
         owner.publicKey,
         0 // update_type: 0 = InitializeOrUpdate
       )
       .accounts({
-        agreement: agreement,
+        agreement: agreement_pda,
         signer: owner.publicKey,
         systemProgram: SystemProgram.programId,
-      })
+      } as any)
       .rpc();
 
-    console.log(
-      "Agreement created successfully! Signature: ",
-      createAgreementInst
+    // wait for confirmation
+    const latestBlockHash = await provider.connection.getLatestBlockhash();
+    await provider.connection.confirmTransaction({
+      blockhash: latestBlockHash.blockhash,
+      lastValidBlockHeight: latestBlockHash.lastValidBlockHeight,
+      signature: tx,
+    });
+
+    // Fetch and verify the updated agreement
+    const updatedAgreementAccount = await program.account.agreementData.fetch(
+      agreement_pda
     );
 
-    // Test 2: Create Adoption
-    console.log("Test 2: Creating Adoption...");
-
-    const createAdoptionInst = await program.methods
-      .createOrUpdateAdoption()
-      .accounts({
-        adoption: adoption,
-        owner: owner.publicKey,
-        agreement: agreement,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-
-    console.log(
-      "Adoption created successfully! Signature: ",
-      createAdoptionInst
+    // Assert updated agreement data
+    assert.equal(
+      updatedAgreementAccount.protocolName,
+      "Safe Harbour Protocol v2"
     );
-
-    console.log("Test 3: new Agreement");
-    const newInitNonce = new BN(2);
-    const newAgreement = PublicKey.findProgramAddressSync(
-      [
-        AGREEMENT_SEED,
-        owner.publicKey.toBuffer(),
-        Buffer.from(newInitNonce.toArrayLike(Buffer, "le", 8)),
-      ],
-      program.programId
+    assert.equal(
+      updatedAgreementAccount.bountyTerms.bountyPercentage.toString(),
+      "15"
     );
-
-    const newAgreementData = {
-      protocolName: "Test Protocol Devnet 2",
-      contactDetails: [{ name: "Jane Doe", contact: "jane@example.com" }],
-      bountyTerms: {
-        bountyPercentage: new BN(15),
-        bountyCapUsd: new BN(150000),
-        retainable: true,
-        identity: { anonymous: {} },
-        diligenceRequirements: "Advanced requirements",
-        aggregateBountyCapUsd: new BN(0),
-      },
-      agreementUri: "ipfs://test-hash-devnet-2",
-    };
-
-    const newCreateAgreementInst = await program.methods
-      .createOrUpdateAgreement(
-        newInitNonce,
-        newAgreementData,
-        owner.publicKey,
-        0
-      )
-      .accounts({
-        agreement: newAgreement,
-        signer: owner.publicKey,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-
-    console.log(
-      "new Agreement created successfully! Signature: ",
-      newCreateAgreementInst
+    assert.equal(
+      updatedAgreementAccount.bountyTerms.bountyCapUsd.toString(),
+      "250000"
     );
-
-    // Test 4: update Adoption
-    console.log("Test 4: Updating Adoption...");
-
-    const updateAdoptionInst = await program.methods
-      .createOrUpdateAdoption()
-      .accounts({
-        adoption: adoption,
-        owner: owner.publicKey,
-        agreement: agreement,
-        systemProgram: SystemProgram.programId,
-      })
-      .rpc();
-
-    console.log(
-      "Adoption updated successfully! Signature: ",
-      updateAdoptionInst
-    );
-  } catch (error) {
-    console.error("Test failed:", error);
-    return false;
-  }
-}
-
-main().then(() => process.exit());
+    assert.equal(updatedAgreementAccount.bountyTerms.retainable, true);
+    assert.equal(updatedAgreementAccount.contactDetails.length, 2);
+  });
+});
