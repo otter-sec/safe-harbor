@@ -2,7 +2,27 @@ use crate::states::{Adopt, AgreementData};
 use crate::utils::events::SafeHarborAdopted;
 use anchor_lang::prelude::*;
 
-/// Context for creating or updating an adoption entry
+/// Context for creating or updating an Adoption of an Agreement
+///
+/// ## PDA Derivation
+/// The `adoption` account is a PDA that uniquely represents an adoption record
+/// for a given `owner`.
+///
+/// PDA seeds used:
+/// - `Adopt::ADOPT_SEED`
+/// - `owner.key().as_ref()` (the user who is adopting)
+///
+/// ## Mapping rules
+/// - Each `owner` can have **at most one adoption account** (1:1 mapping).
+/// - This ensures that adoption is unique per user and prevents multiple active
+///   adoptions at the same time.
+///
+/// ## Relationship with Agreement
+/// - The `agreement` account stores the AgreementData.
+/// - `#[account(has_one = owner)]` enforces that the adoption must be tied
+///   to an agreement whose `owner` parameter matches the `owner` signer in this context.
+/// - This guarantees consistency: only the rightful owner can create/update
+///   an adoption record for their agreement.
 #[derive(Accounts)]
 pub struct CreateOrUpdateAdoption<'info> {
     #[account(
