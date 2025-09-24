@@ -4,17 +4,17 @@ import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { Buffer } from "buffer";
 import { BN } from "bn.js";
 import { assert } from "chai";
-import { SafeHarbour } from "../target/types/safe_harbour";
+import { SafeHarbor } from "../target/types/safe_harbor";
 
 // Seeds
 const AGREEMENT_SEED = Buffer.from("agreement_v2");
 const ADOPTION_SEED = Buffer.from("adopt_v2");
 
-describe("safe_harbour v2", () => {
+describe("safe_harbor v2", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.SafeHarbour as Program<SafeHarbour>;
+  const program = anchor.workspace.SafeHarbor as Program<SafeHarbor>;
   const provider = anchor.getProvider();
   const owner = (provider.wallet as anchor.Wallet).payer;
 
@@ -47,7 +47,7 @@ describe("safe_harbour v2", () => {
     const initNonce = new BN(1);
     const agreementData = {
       owner: owner.publicKey,
-      protocolName: "Safe Harbour Protocol",
+      protocolName: "Safe harbor Protocol",
       contactDetails: [
         { name: "Security Team", contact: "security@example.com" },
       ],
@@ -85,7 +85,7 @@ describe("safe_harbour v2", () => {
     );
 
     // Assert agreement data
-    assert.equal(agreementAccount.protocolName, "Safe Harbour Protocol");
+    assert.equal(agreementAccount.protocolName, "Safe harbor Protocol");
     assert.equal(
       agreementAccount.bountyTerms.bountyPercentage.toString(),
       "10"
@@ -130,7 +130,7 @@ describe("safe_harbour v2", () => {
     const initNonce = new BN(1);
     const updatedAgreementData = {
       owner: owner.publicKey,
-      protocolName: "Safe Harbour Protocol v2",
+      protocolName: "Safe harbor Protocol v2",
       contactDetails: [
         // Updated contact details
         { name: "Security Team", contact: "security@example.com" },
@@ -177,7 +177,7 @@ describe("safe_harbour v2", () => {
     // Assert updated agreement data
     assert.equal(
       updatedAgreementAccount.protocolName,
-      "Safe Harbour Protocol v2"
+      "Safe harbor Protocol v2"
     );
     assert.equal(
       updatedAgreementAccount.bountyTerms.bountyPercentage.toString(),

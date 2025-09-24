@@ -1100,7 +1100,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
 
 [[package]]
-name = "safe_harbour"
+name = "safe_harbor"
 version = "1.1.0"
 dependencies = [
  "anchor-lang",
