@@ -64,6 +64,7 @@ pub mod safe_harbor {
             2 => AgreementUpdateType::ContactDetails,
             3 => AgreementUpdateType::BountyTerms,
             4 => AgreementUpdateType::AgreementUri,
+            5 => AgreementUpdateType::Chains,
             _ => return Err(ValidationError::InvalidUpdateType.into()),
         };
         ctx.accounts

@@ -5,13 +5,13 @@ use crate::utils::Chain;
 use anchor_lang::prelude::*;
 
 /// Max constants for the agreement data
-pub const MAX_CHAINS: usize = 256;
-pub const MAX_CONTACTS: usize = 8;
-pub const MAX_ACCOUNTS: usize = 16;
-pub const MAX_CONTACT_NAME_LEN: usize = 64;
-pub const MAX_CONTACT_INFO_LEN: usize = 64;
+pub const MAX_CHAINS: usize = 32;
+pub const MAX_CONTACTS: usize = 4;
+pub const MAX_ACCOUNTS: usize = 4;
+pub const MAX_CONTACT_NAME_LEN: usize = 32;
+pub const MAX_CONTACT_INFO_LEN: usize = 32;
 pub const MAX_PROTOCOL_NAME_LEN: usize = 64;
-pub const MAX_AGREEMENT_URI_LEN: usize = 512;
+pub const MAX_AGREEMENT_URI_LEN: usize = 256;
 pub const MAX_DILIGENCE_REQUIREMENTS_LEN: usize = 512;
 
 /// AgreementData is used to store the data for the agreement

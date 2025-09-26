@@ -66,32 +66,33 @@ impl CreateOrUpdateAgreement<'_> {
         match update_type {
             // Update the protocol name
             AgreementUpdateType::ProtocolName => {
-                agreement.validate_protocol_name()?;
+                data.validate_protocol_name()?;
                 agreement.protocol_name = data.protocol_name;
             }
             // Update the contact details
             AgreementUpdateType::ContactDetails => {
-                agreement.validate_contact_details()?;
+                data.validate_contact_details()?;
                 agreement.contact_details = data.contact_details;
             }
             // Update the bounty terms
             AgreementUpdateType::BountyTerms => {
-                agreement.validate_bounty_terms_data()?;
+                data.validate_bounty_terms_data()?;
                 agreement.bounty_terms = data.bounty_terms;
             }
             // Update the agreement URI
             AgreementUpdateType::AgreementUri => {
-                agreement.validate_agreement_uri()?;
+                data.validate_agreement_uri()?;
                 agreement.agreement_uri = data.agreement_uri;
             }
             // Update the chains
             AgreementUpdateType::Chains => {
-                agreement.validate_chains(&self.registry)?;
+                data.validate_chains(&self.registry)?;
                 agreement.chains = data.chains;
             }
             // Initialize or update the whole agreement data
             AgreementUpdateType::InitializeOrUpdate => {
-                agreement.validate_agreement_data(&self.registry)?;
+                // Validate the new data before updating
+                data.validate_agreement_data(&self.registry)?;
                 agreement.owner = owner;
                 agreement.chains = data.chains;
                 agreement.agreement_uri = data.agreement_uri;
