@@ -1,17 +1,29 @@
 use anchor_lang::prelude::*;
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+
+use crate::states::*;
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, InitSpace)]
 pub struct Contact {
+    #[max_len(MAX_CONTACT_NAME_LEN)]
     pub name: String,
+    #[max_len(MAX_CONTACT_INFO_LEN)]
     pub contact: String,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
+pub struct Chain {
+    pub asset_recovery_address: Pubkey,
+    #[max_len(MAX_ACCOUNTS)]
+    pub accounts: Vec<AccountInScope>,
+    pub caip2_chain_id: u64,
+}
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, InitSpace)]
 pub struct AccountInScope {
-    pub account_address: String,
+    pub account_address: Pubkey,
     pub child_contract_scope: ChildContractScope,
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
 pub enum ChildContractScope {
     None,
     ExistingOnly,
@@ -24,7 +36,7 @@ impl Default for ChildContractScope {
         Self::None
     }
 }
-#[derive(AnchorSerialize, AnchorDeserialize, Clone)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
 pub enum IdentityRequirements {
     Anonymous,
     Pseudonymous,
@@ -36,12 +48,13 @@ impl Default for IdentityRequirements {
         Self::Anonymous
     }
 }
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Default, InitSpace)]
 pub struct BountyTerms {
     pub bounty_percentage: u64,
     pub bounty_cap_usd: u64,
     pub retainable: bool,
     pub identity: IdentityRequirements,
+    #[max_len(MAX_DILIGENCE_REQUIREMENTS_LEN)]
     pub diligence_requirements: String,
     pub aggregate_bounty_cap_usd: u64,
 }
@@ -73,7 +86,7 @@ mod tests {
         let scope = ChildContractScope::ExistingOnly;
 
         let account = AccountInScope {
-            account_address: "0x123".to_string(),
+            account_address: Pubkey::default(),
             child_contract_scope: scope.clone(),
         };
 

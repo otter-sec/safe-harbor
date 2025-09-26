@@ -42,10 +42,12 @@ pub struct CreateOrUpdateAdoption<'info> {
     pub system_program: Program<'info, System>,
 }
 impl CreateOrUpdateAdoption<'_> {
+    /// Creates or updates an adoption record for the given agreement.
     pub fn create_or_update_adoption(&mut self) -> Result<()> {
         let old_agreement = self.adoption.agreement.key();
 
         let adoption = &mut self.adoption;
+        // Set the new agreement key in the adoption record
         adoption.agreement = self.agreement.key();
 
         emit!(SafeHarborAdopted {

@@ -1,36 +1,30 @@
 use anchor_lang::prelude::*;
+
 #[error_code]
-pub enum BountyError {
-    #[msg("Invalid bounty percentage. Must be between 0 and 100")]
-    InvalidBountyPercentage,
+pub enum RegistryError {
+    #[msg("Registry has not been initialized")]
+    RegistryNotInitialized,
 
-    #[msg("Invalid bounty cap in USD")]
-    InvalidBountyCapUsd,
+    #[msg("Registry already initialized")]
+    AlreadyInitialized,
 
-    #[msg("Invalid aggregate bounty cap in USD")]
-    InvalidAggregateBountyCapUsd,
-
-    #[msg("Cannot set both aggregate bounty cap USD and retainable")]
-    CannotSetBothAggregateBountyCapUSDAndRetainable,
+    #[msg("Caller is not the registry owner")]
+    NotRegistryOwner,
 }
+
 #[error_code]
-pub enum AdoptionError {
-    #[msg("No agreement found for adopter")]
-    NoAgreement,
+pub enum ChainError {
+    #[msg("Invalid CAIP-2 chain ID")]
+    InvalidChainId,
 
-    #[msg("Adoption entry not found")]
-    AdoptionEntryNotFound,
-
-    #[msg("Adoption already exists")]
-    AdoptionAlreadyExists,
+    #[msg("Chain not valid in registry")]
+    ChainNotValidInRegistry,
 }
+
 #[error_code]
 pub enum ValidationError {
     #[msg("Invalid update type")]
     InvalidUpdateType,
-
-    #[msg("Registry already initialized")]
-    AlreadyInitialized,
 
     #[msg("Invalid protocol name")]
     InvalidProtocolName,
@@ -41,20 +35,12 @@ pub enum ValidationError {
     #[msg("Invalid agreement URI")]
     InvalidAgreementUri,
 
-    #[msg("Invalid new owner")]
-    InvalidNewOwner,
+    #[msg("Invalid bounty percentage. Must be between 0 and 100")]
+    InvalidBountyPercentage,
 
-    #[msg("Invalid owner key")]
-    InvalidOwnerKey,
+    #[msg("Invalid bounty cap in USD")]
+    InvalidBountyCapUsd,
 
-    #[msg("Invalid account parameters")]
-    InvalidAccountParams,
-
-    #[msg("Max length exceeded")]
-    MaxLengthExceeded,
-}
-#[error_code]
-pub enum ProgramError {
-    #[msg("Account already exists")]
-    AccountAlreadyExists,
+    #[msg("Invalid aggregate bounty cap in USD")]
+    InvalidAggregateBountyCapUsd,
 }

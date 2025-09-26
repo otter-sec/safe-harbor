@@ -12,10 +12,34 @@ pub mod utils;
 pub use contexts::*;
 pub use errors::*;
 pub use states::{AgreementData, AgreementUpdateType};
+pub use utils::types::Chain;
 
 #[program]
 pub mod safe_harbor {
     use super::*;
+
+    /// Initializes the global registry PDA.
+    pub fn initialize(ctx: Context<Initialize>, valid_chains: Vec<u64>) -> Result<()> {
+        ctx.accounts.initialize(valid_chains)
+    }
+
+    /// Sets the valid chains for the registry.
+    /// # Arguments
+    /// * `valid_chains` - The valid chains to set
+    /// # Returns
+    /// * `Result<()>` - Success or error
+    pub fn set_valid_chains(ctx: Context<Initialize>, valid_chains: Vec<u64>) -> Result<()> {
+        ctx.accounts.set_valid_chains(valid_chains)
+    }
+
+    /// Sets the invalid chains for the registry.
+    /// # Arguments
+    /// * `invalid_chains` - The invalid chains to set
+    /// # Returns
+    /// * `Result<()>` - Success or error
+    pub fn set_invalid_chains(ctx: Context<Initialize>, invalid_chains: Vec<u64>) -> Result<()> {
+        ctx.accounts.set_invalid_chains(invalid_chains)
+    }
 
     /// Creates a new agreement account or updates an existing one with the specified parameters.
     /// The agreement can be modified by its owner after creation.
