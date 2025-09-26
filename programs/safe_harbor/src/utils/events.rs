@@ -3,6 +3,18 @@ use anchor_lang::prelude::*;
 use crate::states::AgreementUpdateType;
 
 #[event]
+pub struct RegistryInitialized {
+    pub registry: Pubkey,
+    pub valid_chains: Vec<u64>,
+    pub owner: Pubkey,
+}
+
+#[event]
+pub struct ValidChainsSet {
+    pub valid_chains: Vec<u64>,
+}
+
+#[event]
 pub struct SafeHarborAdopted {
     pub adopter: Pubkey,
     pub old_agreement: Pubkey,

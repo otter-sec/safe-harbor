@@ -1,3 +1,4 @@
+use crate::states::registry::Registry;
 use crate::states::{AgreementData, AgreementUpdateType};
 use crate::utils::events::AgreementUpdated;
 use anchor_lang::prelude::*;
@@ -34,10 +35,17 @@ pub struct CreateOrUpdateAgreement<'info> {
             init_nonce.to_le_bytes().as_ref(),
         ],
         payer = signer,
-        space = AgreementData::INITIAL_SPACE,
+        space = 8 + AgreementData::INIT_SPACE,
         bump,
     )]
     pub agreement: Account<'info, AgreementData>,
+
+    #[account(
+        mut,
+        seeds=[Registry::REGISTRY_SEED],
+        bump
+    )]
+    pub registry: Account<'info, Registry>,
 
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -46,6 +54,7 @@ pub struct CreateOrUpdateAgreement<'info> {
 }
 
 impl CreateOrUpdateAgreement<'_> {
+    /// Creates or updates an agreement with the given data and update type.
     pub fn create_or_update_agreement(
         &mut self,
         data: AgreementData,
@@ -53,25 +62,39 @@ impl CreateOrUpdateAgreement<'_> {
         update_type: AgreementUpdateType,
     ) -> Result<()> {
         let agreement = &mut self.agreement;
-        data.validate_agreement_data()?;
 
         match update_type {
+            // Update the protocol name
             AgreementUpdateType::ProtocolName => {
+                data.validate_protocol_name()?;
                 agreement.protocol_name = data.protocol_name;
             }
+            // Update the contact details
             AgreementUpdateType::ContactDetails => {
+                data.validate_contact_details()?;
                 agreement.contact_details = data.contact_details;
             }
+            // Update the bounty terms
             AgreementUpdateType::BountyTerms => {
+                data.validate_bounty_terms_data()?;
                 agreement.bounty_terms = data.bounty_terms;
             }
-
+            // Update the agreement URI
             AgreementUpdateType::AgreementUri => {
+                data.validate_agreement_uri()?;
                 agreement.agreement_uri = data.agreement_uri;
             }
-
+            // Update the chains
+            AgreementUpdateType::Chains => {
+                data.validate_chains(&self.registry)?;
+                agreement.chains = data.chains;
+            }
+            // Initialize or update the whole agreement data
             AgreementUpdateType::InitializeOrUpdate => {
+                // Validate the new data before updating
+                data.validate_agreement_data(&self.registry)?;
                 agreement.owner = owner;
+                agreement.chains = data.chains;
                 agreement.agreement_uri = data.agreement_uri;
                 agreement.protocol_name = data.protocol_name;
                 agreement.contact_details = data.contact_details;
