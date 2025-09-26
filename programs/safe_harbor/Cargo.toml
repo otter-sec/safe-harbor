@@ -1,11 +1,11 @@
 [package]
-name = "safe_harbour"
+name = "safe_harbor"
 version = "1.1.0"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "safe_harbour"
+name = "safe_harbor"
 
 [features]
 no-entrypoint = []

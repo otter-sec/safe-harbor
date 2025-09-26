@@ -2,7 +2,7 @@
 
 use anchor_lang::prelude::*;
 
-declare_id!("EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF");
+declare_id!("6Q1MaYkpJCo7Kyz6dwFkN5rypTpVsmZSzqXvwtfrU1Ty");
 
 pub mod contexts;
 pub mod errors;
@@ -14,7 +14,7 @@ pub use errors::*;
 pub use states::{AgreementData, AgreementUpdateType};
 
 #[program]
-pub mod safe_harbour {
+pub mod safe_harbor {
     use super::*;
 
     /// Creates a new agreement account or updates an existing one with the specified parameters.

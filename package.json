@@ -1,6 +1,6 @@
 {
   "scripts": {
-        "test": "ts-mocha -p ./tsconfig.json -t 1000000 tests/test.ts"
+    "test": "ts-mocha -p ./tsconfig.json -t 1000000 tests/test.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.31.0"

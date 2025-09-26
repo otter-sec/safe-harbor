@@ -7,10 +7,10 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-safe_harbour = "EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF"
+safe_harbor = "6Q1MaYkpJCo7Kyz6dwFkN5rypTpVsmZSzqXvwtfrU1Ty"
 
 [programs.localnet]
-safe_harbour = "EaHgBitxgLuABhFvwfvWWuyjGKMnjYPk8Uw3BvuA8EwF"
+safe_harbor = "6Q1MaYkpJCo7Kyz6dwFkN5rypTpVsmZSzqXvwtfrU1Ty"
 
 [provider]
 cluster = "localnet"
