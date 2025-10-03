@@ -1,18 +1,27 @@
 use anchor_lang::prelude::*;
 
-use crate::states::AgreementUpdateType;
+use crate::states::{AdoptUpdateType, AgreementUpdateType};
 
 #[event]
 pub struct SafeHarborAdopted {
     pub adopter: Pubkey,
-    pub old_agreement: Pubkey,
-    pub new_agreement: Pubkey,
+    pub chain_id: String,
+    pub agreement: Pubkey,
+    pub asset_recovery_address: String,
 }
 
 #[event]
 pub struct AgreementUpdated {
     pub agreement: Pubkey,
     pub update_type: AgreementUpdateType,
+}
+
+#[event]
+pub struct AdoptionUpdated {
+    pub adopter: Pubkey,
+    pub chain_id: String,
+    pub adoption: Pubkey,
+    pub update_type: AdoptUpdateType,
 }
 
 #[cfg(test)]

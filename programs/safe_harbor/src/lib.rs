@@ -1,4 +1,5 @@
 #![allow(unexpected_cfgs)]
+#![allow(deprecated)]
 
 use anchor_lang::prelude::*;
 
@@ -11,7 +12,7 @@ pub mod utils;
 
 pub use contexts::*;
 pub use errors::*;
-pub use states::{AgreementData, AgreementUpdateType};
+pub use states::{AdoptUpdateType, AgreementData, AgreementUpdateType};
 
 #[program]
 pub mod safe_harbor {
@@ -46,12 +47,49 @@ pub mod safe_harbor {
             .create_or_update_agreement(data, owner, update_type)
     }
 
-    /// Creates or updates an adoption entry where the signer adopts the specified agreement.
-    /// This registers the adoption in the registry for efficient lookup.
+    /// Creates or updates an adoption entry where the signer adopts the specified agreement
+    /// for a specific chain. This allows protocols to adopt agreements on multiple chains.
+    ///
+    /// # Arguments
+    /// * `chain_id` - The CAIP-2 chain ID (e.g., "eip155:1" for Ethereum mainnet)
+    /// * `chain_id_hash` - SHA256 hash of the chain_id (used for PDA derivation due to 32-byte seed limit)
+    /// * `update_type` - Type of update to perform (0-5)
+    /// * `new_agreement` - Optional: new agreement to adopt (required for ReplaceAll)
+    /// * `asset_recovery_address` - Optional: recovery address (required for InitializeOrUpdate, ReplaceAll, UpdateAssetRecoveryAddress)
+    /// * `accounts` - Optional: accounts list (required for InitializeOrUpdate, ReplaceAll, AddAccounts)
+    /// * `account_addresses_to_remove` - Optional: account addresses to remove (required for RemoveAccounts)
     ///
     /// # Returns
     /// * `Result<()>` - Success or error
-    pub fn create_or_update_adoption(ctx: Context<CreateOrUpdateAdoption>) -> Result<()> {
-        ctx.accounts.create_or_update_adoption()
+    #[allow(clippy::too_many_arguments)]
+    pub fn create_or_update_adoption(
+        ctx: Context<CreateOrUpdateAdoption>,
+        chain_id: String,
+        chain_id_hash: [u8; 32],
+        update_type: u8,
+        new_agreement: Option<Pubkey>,
+        asset_recovery_address: Option<String>,
+        accounts: Option<Vec<crate::utils::types::AccountInScope>>,
+        account_addresses_to_remove: Option<Vec<String>>,
+    ) -> Result<()> {
+        let update_type = match update_type {
+            0 => AdoptUpdateType::InitializeOrUpdate,
+            1 => AdoptUpdateType::ReplaceAll,
+            2 => AdoptUpdateType::AddAccounts,
+            3 => AdoptUpdateType::RemoveAccounts,
+            4 => AdoptUpdateType::UpdateAssetRecoveryAddress,
+            5 => AdoptUpdateType::UpdateAgreement,
+            _ => return Err(ValidationError::InvalidUpdateType.into()),
+        };
+
+        ctx.accounts.create_or_update_adoption(
+            chain_id,
+            chain_id_hash,
+            update_type,
+            new_agreement,
+            asset_recovery_address,
+            accounts,
+            account_addresses_to_remove,
+        )
     }
 }
