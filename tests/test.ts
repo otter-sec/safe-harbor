@@ -6,6 +6,7 @@ import { BN } from "bn.js";
 import { assert } from "chai";
 import { SafeHarbor } from "../target/types/safe_harbor";
 import { createHash } from "crypto";
+import * as bs58 from "bs58";
 
 // Seeds
 const AGREEMENT_SEED = Buffer.from("agreement_v2");
@@ -398,5 +399,217 @@ describe("safe_harbor v2", () => {
     );
     assert.equal(updatedAgreementAccount.bountyTerms.retainable, true);
     assert.equal(updatedAgreementAccount.contactDetails.length, 2);
+  });
+
+  // ============================================================================
+  // Helper Functions for Querying Adoptions
+  // ============================================================================
+
+  /**
+   * Fetch all adoption accounts for a specific adopter
+   * @param adopter - The public key of the adopter
+   * @returns Array of adoption accounts with their public keys
+   */
+  async function fetchAdoptionsByAdopter(adopter: PublicKey) {
+    // Get the discriminator for the Adopt account type
+    const adoptDiscriminator = Buffer.from(
+      createHash("sha256").update("account:Adopt").digest()
+    ).subarray(0, 8);
+
+    const accounts = await provider.connection.getProgramAccounts(
+      program.programId,
+      {
+        filters: [
+          {
+            // Filter by account discriminator (first 8 bytes)
+            memcmp: {
+              offset: 0,
+              bytes: bs58.encode(adoptDiscriminator),
+            },
+          },
+          {
+            // Filter by adopter field at offset 8 (after discriminator)
+            memcmp: {
+              offset: 8,
+              bytes: adopter.toBase58(),
+            },
+          },
+        ],
+      }
+    );
+
+    // Decode and return the adoption accounts
+    return accounts.map((account) => ({
+      publicKey: account.pubkey,
+      account: program.coder.accounts.decode("adopt", account.account.data),
+    }));
+  }
+
+  /**
+   * Filter adoption accounts by a specific contract/program address
+   * @param adoptions - Array of adoption accounts
+   * @param programAddress - The contract/program address to filter by
+   * @returns Filtered adoptions that include the specified program address
+   */
+  function filterAdoptionsByProgramAddress(
+    adoptions: any[],
+    programAddress: string
+  ) {
+    return adoptions.filter((adoption) =>
+      adoption.account.accounts.some(
+        (account: any) => account.accountAddress === programAddress
+      )
+    );
+  }
+
+  // ============================================================================
+  // Query Tests
+  // ============================================================================
+
+  describe("Query Adoptions", () => {
+    it("Fetch all adoptions by adopter", async () => {
+      // Fetch all adoptions for the owner
+      const adoptions = await fetchAdoptionsByAdopter(owner.publicKey);
+
+      // Should have at least 1 adoption (from previous tests)
+      assert.isAtLeast(adoptions.length, 1, "Should have at least 1 adoption");
+
+      console.log(`\nFound ${adoptions.length} adoption(s) for adopter:`);
+      adoptions.forEach((adoption, index) => {
+        console.log(`\nAdoption #${index + 1}:`);
+        console.log(`  PDA: ${adoption.publicKey.toBase58()}`);
+        console.log(`  Chain ID: ${adoption.account.caip2ChainId}`);
+        console.log(`  Adopter: ${adoption.account.adopter.toBase58()}`);
+        console.log(
+          `  Agreement: ${adoption.account.agreement.toBase58()}`
+        );
+        console.log(
+          `  Asset Recovery: ${adoption.account.assetRecoveryAddress}`
+        );
+        console.log(`  Contracts: ${adoption.account.accounts.length}`);
+        adoption.account.accounts.forEach((account: any, i: number) => {
+          console.log(`    ${i + 1}. ${account.accountAddress}`);
+        });
+      });
+
+      // Verify the adopter field matches
+      adoptions.forEach((adoption) => {
+        assert.equal(
+          adoption.account.adopter.toBase58(),
+          owner.publicKey.toBase58(),
+          "Adopter field should match queried adopter"
+        );
+      });
+    });
+
+    it("Filter adoptions by specific program address", async () => {
+      // Fetch all adoptions for the owner
+      const adoptions = await fetchAdoptionsByAdopter(owner.publicKey);
+
+      // Filter by the Token program address
+      const tokenProgramAddress = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+      const filtered = filterAdoptionsByProgramAddress(
+        adoptions,
+        tokenProgramAddress
+      );
+
+      // Should have at least 1 adoption with Token program
+      assert.isAtLeast(
+        filtered.length,
+        1,
+        "Should have at least 1 adoption with Token program"
+      );
+
+      console.log(
+        `\nFound ${filtered.length} adoption(s) including ${tokenProgramAddress}:`
+      );
+      filtered.forEach((adoption, index) => {
+        console.log(`\nAdoption #${index + 1}:`);
+        console.log(`  PDA: ${adoption.publicKey.toBase58()}`);
+        console.log(`  Chain ID: ${adoption.account.caip2ChainId}`);
+        console.log(
+          `  Contracts including ${tokenProgramAddress}:`
+        );
+        adoption.account.accounts.forEach((account: any, i: number) => {
+          if (account.accountAddress === tokenProgramAddress) {
+            console.log(`    ✓ ${account.accountAddress}`);
+          }
+        });
+      });
+
+      // Verify all filtered adoptions contain the program address
+      filtered.forEach((adoption) => {
+        const hasProgram = adoption.account.accounts.some(
+          (account: any) => account.accountAddress === tokenProgramAddress
+        );
+        assert.isTrue(
+          hasProgram,
+          `Adoption should contain ${tokenProgramAddress}`
+        );
+      });
+    });
+
+    it("Filter adoptions by Serum program address", async () => {
+      // Fetch all adoptions for the owner
+      const adoptions = await fetchAdoptionsByAdopter(owner.publicKey);
+
+      // Filter by Serum program (added in "Add accounts to adoption" test)
+      const serumProgramAddress =
+        "9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin";
+      const filtered = filterAdoptionsByProgramAddress(
+        adoptions,
+        serumProgramAddress
+      );
+
+      // Should have at least 1 adoption with Serum program
+      assert.isAtLeast(
+        filtered.length,
+        1,
+        "Should have at least 1 adoption with Serum program"
+      );
+
+      console.log(
+        `\nFound ${filtered.length} adoption(s) including Serum program:`
+      );
+      filtered.forEach((adoption) => {
+        const serumAccount = adoption.account.accounts.find(
+          (account: any) => account.accountAddress === serumProgramAddress
+        );
+        console.log(`  PDA: ${adoption.publicKey.toBase58()}`);
+        console.log(`  Serum contract scope:`, serumAccount?.childContractScope);
+      });
+    });
+
+    it("Combined query: Fetch by adopter and filter by program", async () => {
+      // This demonstrates the complete workflow:
+      // 1. Fetch all adoptions by adopter (on-chain filter)
+      // 2. Filter by program address (client-side filter)
+
+      const adopter = owner.publicKey;
+      const programAddress = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+
+      // Step 1: Fetch all adoptions by adopter
+      const allAdoptions = await fetchAdoptionsByAdopter(adopter);
+      console.log(`\nStep 1: Found ${allAdoptions.length} total adoptions for adopter`);
+
+      // Step 2: Filter by program address
+      const filteredAdoptions = filterAdoptionsByProgramAddress(
+        allAdoptions,
+        programAddress
+      );
+      console.log(
+        `Step 2: Filtered to ${filteredAdoptions.length} adoptions containing ${programAddress}`
+      );
+
+      // Verify results
+      assert.isAtLeast(allAdoptions.length, 1);
+      assert.isAtLeast(filteredAdoptions.length, 1);
+      assert.isAtMost(filteredAdoptions.length, allAdoptions.length);
+
+      // Show summary
+      console.log(`\nSummary:`);
+      console.log(`  Total adoptions: ${allAdoptions.length}`);
+      console.log(`  With ${programAddress}: ${filteredAdoptions.length}`);
+    });
   });
 });

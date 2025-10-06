@@ -107,10 +107,11 @@ impl CreateOrUpdateAdoption<'_> {
                         ValidationError::MaxLengthExceeded
                     );
                     require!(
-                        accts.len() <= crate::states::adopt::MAX_ACCOUNTS_PER_CHAIN,
+                        accts.len() <= crate::states::adopt::MAX_CONTRACTS_PER_ADOPTION,
                         ValidationError::MaxLengthExceeded
                     );
 
+                    adoption.adopter = self.adopter.key();
                     adoption.agreement = self.agreement.key();
                     adoption.caip2_chain_id = chain_id.clone();
                     adoption.asset_recovery_address = recovery_addr.clone();
@@ -135,10 +136,11 @@ impl CreateOrUpdateAdoption<'_> {
                         ValidationError::MaxLengthExceeded
                     );
                     require!(
-                        accts.len() <= crate::states::adopt::MAX_ACCOUNTS_PER_CHAIN,
+                        accts.len() <= crate::states::adopt::MAX_CONTRACTS_PER_ADOPTION,
                         ValidationError::MaxLengthExceeded
                     );
 
+                    adoption.adopter = self.adopter.key();
                     adoption.agreement = agreement;
                     adoption.asset_recovery_address = recovery_addr;
                     adoption.accounts = accts;
@@ -160,7 +162,7 @@ impl CreateOrUpdateAdoption<'_> {
                     }
 
                     require!(
-                        adoption.accounts.len() <= crate::states::adopt::MAX_ACCOUNTS_PER_CHAIN,
+                        adoption.accounts.len() <= crate::states::adopt::MAX_CONTRACTS_PER_ADOPTION,
                         ValidationError::MaxLengthExceeded
                     );
                 }

@@ -7,7 +7,11 @@ use anchor_lang::prelude::*;
 // Set to 128 to safely cover all major chains including Cardano
 pub const MAX_ASSET_RECOVERY_ADDR_LEN: usize = 128;
 
-pub const MAX_ACCOUNTS_PER_CHAIN: usize = 50;
+// Maximum number of smart contract addresses per adoption
+// These are the protocol's related contracts (main contracts, proxies, factories, etc.)
+// 20 is sufficient for most protocols 
+// Each AccountInScope ~69 bytes, so 20 contracts = 1,380 bytes
+pub const MAX_CONTRACTS_PER_ADOPTION: usize = 20;
 
 // CAIP-2 Chain ID max length
 // Shortest: ~9 chars (eip155:1)
@@ -19,6 +23,10 @@ pub const MAX_CHAIN_ID_LEN: usize = 64;
 /// Each adopter can have multiple Adopt accounts (one per chain).
 #[account]
 pub struct Adopt {
+    /// The public key of the adopter who created this adoption
+    /// Stored explicitly to enable filtering by adopter using getProgramAccounts
+    pub adopter: Pubkey,
+
     /// The public key of the Agreement being adopted
     pub agreement: Pubkey,
 
@@ -64,19 +72,21 @@ impl Adopt {
     /// Maximum space allocated for an Adopt account
     /// This provides sufficient space for max-length fields:
     /// - 8 (discriminator)
+    /// - 32 (adopter pubkey)
     /// - 32 (agreement pubkey)
     /// - 4 + 64 (chain_id with max length)
     /// - 4 + 128 (asset_recovery_address with max length)
-    /// - 4 + (50 * 69) (max accounts, each ~69 bytes)
+    /// - 4 + (20 * 69) (max contracts per adoption, each AccountInScope ~69 bytes)
     /// - 256 (buffer for account reallocation and future growth)
-    /// - Total: ~3,900 bytes
+    /// - Total: ~1,912 bytes
     pub const INITIAL_SPACE: usize = 8
+        + 32
         + 32
         + 4
         + MAX_CHAIN_ID_LEN
         + 4
         + MAX_ASSET_RECOVERY_ADDR_LEN
         + 4
-        + (MAX_ACCOUNTS_PER_CHAIN * 69)
+        + (MAX_CONTRACTS_PER_ADOPTION * 69)
         + 256;
 }
